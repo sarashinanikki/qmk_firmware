@@ -15,23 +15,37 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include QMK_KEYBOARD_H
 
+#ifdef OS_DETECTION_ENABLE
+  #include "os_detection.h"
+#endif
+
+enum os_variant_t {
+   OS_UNSURE,
+   OS_LINUX,
+   OS_WINDOWS,
+   OS_MACOS,
+   OS_IOS,
+} os_variant_t;
+
 // Each layer gets a name for readability, which is then used in the keymap matrix below.
 // The underscores don't mean anything - you can have a layer called STUFF or any other name.
 // Layer names don't all need to be of the same length, obviously, and you can also skip them
 // entirely and just use numbers.
 
 enum layer_number {
-    _QWERTY = 0,
-    _RAISE,
-    _LOWER,
+   _QWERTY = 0,
+   _RAISE,
+   _LOWER,
+   IMEON,
+   IMEOFF
 };
 
 #define _QWERTY 0
 #define _LOWER 1
 #define _RAISE 2
 #define _MOU 3
-#define KC_LOMH LT(_LOWER, KC_MHEN)
-#define KC_RAHE LT(_RAISE, KC_HENK)
+#define KC_LOMH LT(_LOWER, INEOFF)
+#define KC_RAHE LT(_RAISE, IMEON)
 #define KC_SFEN SFT_T(KC_ENT)
 #define KC_SFSP SFT_T(KC_SPC)
 #define KC_CTGU LCTL_T(KC_LGUI)
@@ -79,13 +93,55 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
    [_MOU] = LAYOUT(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-      XXXXXXX, XXXXXXX, XXXXXXX, KC_MS_U, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, KC_MS_U, XXXXXXX, XXXXXXX, XXXXXXX,\
+      XXXXXXX, XXXXXXX, XXXXXXX, KC_MS_U, XXXXXXX, KC_WH_U,                      KC_WH_U, XXXXXXX, KC_MS_U, XXXXXXX, XXXXXXX, XXXXXXX,\
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       KC_BTN2, KC_BTN1, KC_MS_L, KC_MS_D, KC_MS_R, KC_BTN1,                      KC_BTN1, KC_MS_L, KC_MS_D, KC_MS_R, KC_BTN1, KC_BTN2,\
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX, XXXXXXX, KC_ACL2, KC_ACL1, KC_ACL0, XXXXXXX,                      XXXXXXX, KC_ACL0, KC_ACL1, KC_ACL2, XXXXXXX, XXXXXXX,\
+      XXXXXXX, XXXXXXX, KC_ACL2, KC_ACL1, KC_ACL0, KC_WH_D,                      KC_WH_D, KC_ACL0, KC_ACL1, KC_ACL2, XXXXXXX, XXXXXXX,\
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
                                 KC_LCTL, XXXXXXX, KC_BTN1, RET_DEF,    MOV_MOU, KC_BTN1, XXXXXXX, KC_RCTL
     //                        `--------+--------+--------+--------'   `--------+--------+--------+--------'
     ),
 };
+
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+   // uint16_t henk = KC_INT4;
+   // uint16_t mhen = KC_INT5;
+
+   // #ifdef OS_DETECTION_ENABLE
+      // switch (detected_host_os()) {
+      //    case OS_UNSURE:
+      //       break;
+      //    case OS_LINUX:
+      //       break;
+      //    case OS_WINDOWS:
+      //          break;
+      //    case OS_MACOS:
+      //          break;
+      //    case OS_IOS:
+      //          break;
+      // }
+   // #endif
+   switch (keycode) {
+      case IMEON:
+        if (record->event.pressed) {
+          register_code(KC_INT4);
+          register_code(KC_LNG1);
+        } else {
+          unregister_code(KC_INT4);
+          unregister_code(KC_LNG1);
+        }
+        return false;
+      case IMEOFF:
+        if (record->event.pressed) {
+          register_code(KC_INT5);
+          register_code(KC_LNG2);
+        } else {
+          unregister_code(KC_INT5);
+          unregister_code(KC_LNG2);
+        }
+        return false;
+      default:
+        return true;
+   }
+}
